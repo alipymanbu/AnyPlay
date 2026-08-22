@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AniFlix - Library</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="sidebar">
+        <h2>AniFlix</h2>
+        <ul class="nav-menu">
+            <li class="nav-item active" data-tab="library">Library</li>
+            <li class="nav-item has-dropdown">
+                Downloader <span class="dropdown-arrow">▼</span>
+                <ul class="dropdown-menu">
+                    <li class="nav-subitem has-dropdown">
+                        Anime <span class="dropdown-arrow">▼</span>
+                        <ul class="dropdown-menu nested">
+                            <li class="nav-subitem" data-tab="anime">Scraper (Gogo)</li>
+                        </ul>
+                    </li>
+                    <li class="nav-subitem has-dropdown">
+                        Movies <span class="dropdown-arrow">▼</span>
+                        <ul class="dropdown-menu nested">
+                            <li class="nav-subitem" data-tab="movies">Torrent (YTS)</li>
+                        </ul>
+                    </li>
+                    <li class="nav-subitem" data-tab="progress">Progress</li>
+                </ul>
+            </li>
+            <li class="nav-item" data-tab="settings">Settings</li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <!-- Progress Tab -->
+        <div id="progress" class="tab-content">
+            <h1>Active Downloads</h1>
+            <div id="downloadsList" style="margin-top: 20px;">
+                <p>No active downloads.</p>
+            </div>
+        </div>
+        <!-- Library Tab -->
+        <div id="library" class="tab-content active">
+            <h1>Library</h1>
+            <div class="library-grid" id="libraryGrid">
+                <!-- Shows will be populated here -->
+                <p>Loading library...</p>
+            </div>
+        </div>
+
+        <!-- Anime Tab (formerly Downloader) -->
+        <div id="anime" class="tab-content">
+            <h1>Anime</h1>
+            
+            <div class="search-container" style="margin-bottom: 20px;">
+                <input type="text" id="searchInput" placeholder="Search for anime..." style="padding: 10px; width: 300px; max-width: 100%; border-radius: 4px; border: none; margin-bottom: 10px;">
+                <button id="searchBtn">Search</button>
+            </div>
+            
+            <div id="searchResults" style="margin-bottom: 30px;"></div>
+            
+            <div id="episodeSelection" style="display: none; margin-bottom: 30px; background: var(--card-bg); padding: 20px; border-radius: 8px;">
+                <h3 id="selectedAnimeTitle" style="margin-bottom: 10px;"></h3>
+                <div id="episodeList" style="max-height: 200px; overflow-y: auto; margin-bottom: 15px;"></div>
+                <div class="button-group">
+                    <button id="downloadBtn">Download Selected</button>
+                    <button id="downloadAllBtn" style="margin-left: 10px;">Download All</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Movies Tab -->
+        <div id="movies" class="tab-content">
+            <h1>Movies</h1>
+            
+            <div class="search-container" style="margin-bottom: 20px;">
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <select id="movieLangSelect" style="padding: 10px; border-radius: 4px; border: none; background: var(--card-bg); color: var(--text-color);">
+                        <option value="PL">Polish (Lektor/Dubbing)</option>
+                        <option value="EN">English (Original)</option>
+                    </select>
+                    <input type="text" id="movieSearchInput" placeholder="Search for movies..." style="padding: 10px; flex: 1; border-radius: 4px; border: none;">
+                </div>
+                <button id="movieSearchBtn">Search Movies</button>
+            </div>
+            
+            <div id="movieSearchResults" style="margin-bottom: 30px;"></div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings" class="tab-content">
+            <h1>Settings</h1>
+            <div style="margin-top: 20px;">
+                <div class="settings-group">
+                    <label for="accentColor">Accent Color</label>
+                    <input type="color" id="accentColor" value="#00a8e1">
+                </div>
+                <div class="settings-group">
+                    <label for="bgColor">Background Color</label>
+                    <input type="color" id="bgColor" value="#0f171e">
+                </div>
+                <button id="saveSettingsBtn">Save Settings</button>
+                <button id="resetSettingsBtn" style="background-color: #555; margin-left: 10px;">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

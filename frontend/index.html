@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnyPlay</title>
+    <link rel="icon" href="data:,">
+    <!-- Tailwind CSS (via CDN for simplicity as requested, ignoring production warnings) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: 'var(--accent-color)',
+                        dark: 'var(--bg-color)',
+                        darker: 'var(--card-bg)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --accent-color: #00a8e1;
+            --bg-color: #0f171e;
+            --card-bg: #19222c;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: var(--card-bg); border-radius: 4px; border: 1px solid var(--bg-color); }
+        ::-webkit-scrollbar-thumb:hover { background: #333; }
+        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        
+        /* Card Hover Effects */
+        .media-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .media-card:hover { transform: scale(1.05) translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); z-index: 10; }
+        
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="bg-dark text-white font-sans antialiased overflow-hidden">
+    <div class="flex h-[100dvh] w-full">
+        <!-- Mobile Sidebar Overlay -->
+        <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-20 hidden md:hidden"></div>
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 bg-darker flex flex-col fixed md:relative h-full z-30 transition-transform duration-300 -translate-x-full md:translate-x-0 border-r border-gray-800 md:border-none">
+            <div class="p-6 flex items-center justify-between">
+                <h1 class="text-3xl font-bold text-primary tracking-wider">AnyPlay</h1>
+                <button id="closeSidebarBtn" class="md:hidden text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+                <button data-tab="library" class="tab-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors bg-gray-800 text-white font-medium">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                    Library
+                </button>
+                
+                <div class="pt-6 pb-2">
+                    <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Scrapers</p>
+                </div>
+                
+                <button data-tab="anime" class="tab-btn w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Anime
+                </button>
+                <button data-tab="movies" class="tab-btn w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"></path></svg>
+                    Movies
+                </button>
+                <button data-tab="tv" class="tab-btn w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    TV Shows
+                </button>
+                
+                <div class="pt-6 pb-2">
+                    <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider">System</p>
+                </div>
+                
+                <button data-tab="progress" class="tab-btn w-full flex items-center justify-between px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Queue
+                    </div>
+                    <span id="queueBadge" class="bg-primary text-xs font-bold px-2 py-0.5 rounded-full hidden text-white">0</span>
+                </button>
+                
+                <button data-tab="logs" class="tab-btn w-full flex items-center justify-between px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Logs
+                    </div>
+                </button>
+                
+                <button data-tab="settings" class="tab-btn w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    Settings
+                </button>
+                <button data-tab="legal" class="tab-btn w-full flex items-center gap-3 px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    Legal & Disclaimers
+                </button>
+                
+                <!-- Storage Info -->
+                <div class="pt-8 pb-4">
+                    <div class="flex justify-between text-xs text-gray-400 mb-2 px-1">
+                        <span>Storage</span>
+                        <span id="storageText">Loading...</span>
+                    </div>
+                    <div class="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
+                        <div id="storageBar" class="bg-primary h-1.5 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden relative bg-dark">
+            <!-- Mobile Header -->
+            <header class="md:hidden flex items-center gap-4 p-4 bg-darker border-b border-gray-800">
+                <button id="openSidebarBtn" class="text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+                <h1 class="text-2xl font-bold text-primary tracking-wider">AnyPlay</h1>
+            </header>
+
+            <!-- Content Area -->
+            <div class="flex-1 overflow-y-auto p-4 md:p-8" id="contentArea">
+                
+                <!-- Library View -->
+                <div id="view-library" class="view-panel block">
+                    <h2 class="text-3xl font-bold mb-6">My Library</h2>
+                    <div id="libraryGrid" class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-6">
+                        <!-- Populated by JS -->
+                        <div class="col-span-full text-center py-10 text-gray-500">Loading library...</div>
+                    </div>
+                </div>
+
+                <!-- Anime View -->
+                <div id="view-anime" class="view-panel hidden max-w-5xl mx-auto">
+                    <h2 class="text-3xl font-bold mb-6">Search Anime</h2>
+                    <form id="animeSearchForm" class="flex flex-col sm:flex-row gap-4 mb-8">
+                        <input type="text" id="animeSearchInput" placeholder="Enter anime title (e.g., Attack on Titan)" class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors">
+                        <button type="submit" id="animeSearchBtn" class="bg-primary hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            Search
+                        </button>
+                    </form>
+                    <div id="animeSearchResults" class="space-y-3 mb-8"></div>
+                    
+                    <div id="animeEpisodeSelection" class="hidden bg-gray-900 border border-gray-800 rounded-xl p-6 mt-8">
+                        <h3 id="animeSelectedTitle" class="text-2xl font-bold mb-4">Select Episodes</h3>
+                        <div class="flex gap-4 mb-6">
+                            <button type="button" id="animeSelectAllBtn" class="text-sm bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded transition-colors">Select All</button>
+                            <button type="button" id="animeDeselectAllBtn" class="text-sm bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded transition-colors">Deselect All</button>
+                        </div>
+                        <div id="animeEpisodeList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-96 overflow-y-auto pr-2 mb-6 hide-scroll"></div>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <button type="button" id="animeDownloadSelectedBtn" class="bg-white text-black font-bold py-3 px-8 rounded-lg hover:bg-gray-200 transition-colors">Download Selected</button>
+                            <button type="button" id="animeCancelSelectionBtn" class="bg-gray-800 text-white font-bold py-3 px-8 rounded-lg hover:bg-gray-700 transition-colors">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Movies View -->
+                <div id="view-movies" class="view-panel hidden max-w-5xl mx-auto">
+                    <h2 class="text-3xl font-bold mb-6">Search Movies</h2>
+                    <form id="movieSearchForm" class="flex flex-col sm:flex-row gap-4 mb-8">
+                        <input type="text" id="movieSearchInput" placeholder="Enter movie title..." class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors">
+                        <button type="submit" id="movieSearchBtn" class="bg-primary hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            Search
+                        </button>
+                    </form>
+                    <div id="movieSearchResults" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                </div>
+
+                <!-- TV Shows View -->
+                <div id="view-tv" class="view-panel hidden max-w-5xl mx-auto">
+                    <h2 class="text-3xl font-bold mb-6">Search TV Shows</h2>
+                    <form id="tvSearchForm" class="flex flex-col sm:flex-row gap-4 mb-8">
+                        <input type="text" id="tvSearchInput" placeholder="Enter TV show title..." class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors">
+                        <button type="submit" id="tvSearchBtn" class="bg-primary hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            Search
+                        </button>
+                    </form>
+                    <div id="tvSearchResults" class="space-y-3 mb-8"></div>
+                    
+                    <div id="tvEpisodeSelection" class="hidden bg-gray-900 border border-gray-800 rounded-xl p-6 mt-8">
+                        <div class="flex flex-col sm:flex-row gap-6">
+                            <div class="flex-1">
+                                <h3 id="tvSelectedTitle" class="text-2xl font-bold mb-2">Select Episodes</h3>
+                                <p id="tvSelectedDesc" class="text-gray-400 text-sm mb-4 line-clamp-3"></p>
+                                <div class="flex gap-4 mb-4">
+                                    <button type="button" id="tvSelectAllBtn" class="text-sm bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded transition-colors">Select All</button>
+                                    <button type="button" id="tvDeselectAllBtn" class="text-sm bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded transition-colors">Deselect All</button>
+                                </div>
+                                <div id="tvEpisodeList" class="flex flex-col gap-2 max-h-80 overflow-y-auto pr-2 mb-6 hide-scroll"></div>
+                                <div class="flex gap-4">
+                                    <button type="button" id="tvDownloadSelectedBtn" class="bg-white text-black font-bold py-3 px-8 rounded-lg hover:bg-gray-200 transition-colors">Download Selected</button>
+                                    <button type="button" id="tvCancelSelectionBtn" class="bg-gray-800 text-white font-bold py-3 px-8 rounded-lg hover:bg-gray-700 transition-colors">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progress View -->
+                <div id="view-progress" class="view-panel hidden max-w-5xl mx-auto">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-3xl font-bold">Download Queue</h2>
+                        <button id="stopAllDownloadsBtn" class="bg-red-900/30 hover:bg-red-800/80 text-red-200 px-4 py-2 rounded-lg transition-colors border border-red-800">Stop All</button>
+                    </div>
+                    <div id="downloadsList" class="space-y-6">
+                        <p class="text-gray-500 text-center py-10">No active downloads.</p>
+                    </div>
+
+
+                </div>
+
+                <!-- Settings View -->
+                <div id="view-settings" class="view-panel hidden max-w-5xl mx-auto">
+                    <h2 class="text-3xl font-bold mb-6">Settings</h2>
+                    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-2">Accent Color</label>
+                                <div class="flex items-center gap-4">
+                                    <input type="color" id="accentColor" value="#00a8e1" class="w-12 h-12 rounded cursor-pointer bg-transparent border-0 p-0">
+                                    <span class="text-gray-300">Choose your primary theme color</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-2">Background Color</label>
+                                <div class="flex items-center gap-4">
+                                    <input type="color" id="bgColor" value="#0f171e" class="w-12 h-12 rounded cursor-pointer bg-transparent border-0 p-0">
+                                    <span class="text-gray-300">Choose your main background color</span>
+                                </div>
+                            </div>
+                            <div class="pt-4 flex gap-4">
+                                <button id="saveSettingsBtn" class="bg-primary hover:opacity-80 text-white font-bold py-2 px-6 rounded-lg transition-opacity">Save Settings</button>
+                                <button id="resetSettingsBtn" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">Reset</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logs View -->
+                <div id="view-logs" class="view-panel hidden max-w-5xl mx-auto flex-col h-full">
+                    <h2 class="text-3xl font-bold mb-6">Logs</h2>
+                    <div class="flex-1 bg-black/50 p-4 rounded-xl border border-gray-800 flex flex-col min-h-0">
+                        <h3 class="font-bold text-gray-300 mb-2">System Logs</h3>
+                        <div class="relative flex-1 flex flex-col min-h-0 group">
+                            <button id="copySystemLogsBtn" class="absolute top-2 right-2 p-2 bg-gray-800/80 hover:bg-gray-700 rounded text-gray-400 hover:text-white transition-colors opacity-0 group-hover:opacity-100 z-10" title="Copy logs">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            </button>
+                            <div id="systemLogsBox" class="flex-1 overflow-y-auto font-mono text-[10px] text-green-400 bg-black p-2 rounded hide-scroll whitespace-pre-wrap"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Legal View -->
+                <div id="view-legal" class="view-panel hidden max-w-5xl mx-auto">
+                    <h2 class="text-3xl font-bold mb-6">Legal & Disclaimers</h2>
+                    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 text-gray-300 space-y-6">
+                        
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-2">Disclaimer of Liability</h3>
+                            <p class="text-sm">
+                                AnyPlay is exclusively an <strong>advanced web search application</strong>. It acts as a specialized web browser that aggregates search results and metadata from publicly available sources on the internet. 
+                            </p>
+                            <p class="text-sm mt-2">
+                                AnyPlay <strong>does not host, store, stream, or distribute</strong> any copyrighted media files. All media is provided by third-party external services and aggregators over which we have no control. Users are solely responsible for ensuring their usage complies with their local laws and regulations.
+                            </p>
+                        </div>
+
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-2">Open Source Credits</h3>
+                            <p class="text-sm mb-4">We would like to thank and credit the following open-source projects and APIs that power this application:</p>
+                            
+                            <ul class="space-y-4">
+                                <li class="bg-gray-800 p-4 rounded-lg">
+                                    <strong class="text-primary">Ionic Capacitor</strong>
+                                    <p class="text-xs mt-1 text-gray-400">The core cross-platform native runtime powering this application. Distributed under the MIT License.</p>
+                                    <a href="https://capacitorjs.com/" target="_blank" class="text-xs text-blue-400 hover:underline mt-1 inline-block">https://capacitorjs.com/</a>
+                                </li>
+                                <li class="bg-gray-800 p-4 rounded-lg">
+                                    <strong class="text-primary">ExoPlayer (AndroidX Media3)</strong>
+                                    <p class="text-xs mt-1 text-gray-400">The native media playback engine used to play video streams. Distributed under the Apache License 2.0.</p>
+                                    <a href="https://github.com/androidx/media" target="_blank" class="text-xs text-blue-400 hover:underline mt-1 inline-block">https://github.com/androidx/media</a>
+                                </li>
+                                <li class="bg-gray-800 p-4 rounded-lg">
+                                    <strong class="text-primary">Tailwind CSS</strong>
+                                    <p class="text-xs mt-1 text-gray-400">Utility-first CSS framework used for the user interface. Distributed under the MIT License.</p>
+                                    <a href="https://tailwindcss.com/" target="_blank" class="text-xs text-blue-400 hover:underline mt-1 inline-block">https://tailwindcss.com/</a>
+                                </li>
+                                <li class="bg-gray-800 p-4 rounded-lg">
+                                    <strong class="text-primary">FFmpeg (ffmpeg-kit)</strong>
+                                    <p class="text-xs mt-1 text-gray-400">Used as the core engine for HLS stream processing and media downloading. FFmpeg is a trademark of Fabrice Bellard, originator of the FFmpeg project.</p>
+                                    <a href="https://ffmpeg.org/" target="_blank" class="text-xs text-blue-400 hover:underline mt-1 inline-block">https://ffmpeg.org/</a>
+                                </li>
+                                <li class="bg-gray-800 p-4 rounded-lg">
+                                    <strong class="text-primary">jlibtorrent (libtorrent)</strong>
+                                    <p class="text-xs mt-1 text-gray-400">Powers the peer-to-peer downloading engine. Distributed under the BSD License.</p>
+                                    <a href="https://github.com/frostwire/jlibtorrent" target="_blank" class="text-xs text-blue-400 hover:underline mt-1 inline-block">https://github.com/frostwire/jlibtorrent</a>
+                                </li>
+                                <li class="bg-gray-800 p-4 rounded-lg">
+                                    <strong class="text-primary">AniList API</strong>
+                                    <p class="text-xs mt-1 text-gray-400">Provides comprehensive Anime metadata, descriptions, and thumbnails.</p>
+                                    <a href="https://anilist.co/" target="_blank" class="text-xs text-blue-400 hover:underline mt-1 inline-block">https://anilist.co/</a>
+                                </li>
+                                <li class="bg-gray-800 p-4 rounded-lg">
+                                    <strong class="text-primary">TMDB (The Movie Database)</strong>
+                                    <p class="text-xs mt-1 text-gray-400">Used for Movie and TV Show metadata and imagery. This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+                                    <a href="https://www.themoviedb.org/" target="_blank" class="text-xs text-blue-400 hover:underline mt-1 inline-block">https://www.themoviedb.org/</a>
+                                </li>
+                                <li class="bg-gray-800 p-4 rounded-lg">
+                                    <strong class="text-primary">AniDB</strong>
+                                    <p class="text-xs mt-1 text-gray-400">Provides Anime search functionality.</p>
+                                </li>
+                                <li class="bg-gray-800 p-4 rounded-lg">
+                                    <strong class="text-primary">Apibay / Bitsearch</strong>
+                                    <p class="text-xs mt-1 text-gray-400">Provides public search indexing functionality for Movies and TV Shows.</p>
+                                </li>
+                                <li class="bg-gray-800 p-4 rounded-lg">
+                                    <strong class="text-primary">Cinemeta / TVMaze</strong>
+                                    <p class="text-xs mt-1 text-gray-400">Open-source metadata aggregators used by the community.</p>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- App Script -->
+    <script src="static/scrapers.js"></script>
+    <script src="/static/script.js"></script>
+</body>
+</html>
