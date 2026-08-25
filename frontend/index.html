@@ -235,22 +235,16 @@
                     <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
                         <div class="space-y-6">
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-2">Accent Color</label>
-                                <div class="flex items-center gap-4">
-                                    <input type="color" id="accentColor" value="#00a8e1" class="w-12 h-12 rounded cursor-pointer bg-transparent border-0 p-0">
-                                    <span class="text-gray-300">Choose your primary theme color</span>
-                                </div>
+                                <h3 class="text-xl font-bold mb-2">Storage & Cache</h3>
+                                <p class="text-gray-400 mb-4 text-sm">Clear temporary files, cached images, and orphaned downloads to free up space.</p>
+                                <button id="clearCacheBtn" class="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg">Clear Cache & Temp Files</button>
                             </div>
+                            <hr class="border-gray-800">
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-2">Background Color</label>
-                                <div class="flex items-center gap-4">
-                                    <input type="color" id="bgColor" value="#0f171e" class="w-12 h-12 rounded cursor-pointer bg-transparent border-0 p-0">
-                                    <span class="text-gray-300">Choose your main background color</span>
-                                </div>
-                            </div>
-                            <div class="pt-4 flex gap-4">
-                                <button id="saveSettingsBtn" class="bg-primary hover:opacity-80 text-white font-bold py-2 px-6 rounded-lg transition-opacity">Save Settings</button>
-                                <button id="resetSettingsBtn" class="bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">Reset</button>
+                                <h3 class="text-xl font-bold mb-2">Updates</h3>
+                                <p class="text-gray-400 mb-4 text-sm">Check GitHub for the latest version of AnyPlay.</p>
+                                <button id="checkUpdatesBtn" class="bg-primary hover:opacity-80 text-white font-bold py-2 px-6 rounded-lg transition-opacity shadow-lg">Check for Updates</button>
+                                <p id="updateStatus" class="text-sm mt-2 text-gray-300"></p>
                             </div>
                         </div>
                     </div>

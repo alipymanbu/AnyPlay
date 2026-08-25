@@ -240,17 +240,47 @@ const AnimeScraper = {
             const html = await r.text();
             
             const imgMatch = /<meta property="og:image" content="([^"]+)"/.exec(html);
-            const descMatch = /<meta property="og:description" content="([^"]+)"/.exec(html);
             const titleMatch = /<meta property="og:title" content="([^"]+)"/.exec(html);
-            
             let rawTitle = titleMatch ? titleMatch[1] : "Unknown Title";
-            let cleanTitle = rawTitle.replace(/&#039;/g, "'").replace(/&quot;/g, '"').replace(/\s*[-—–]\s*AniDB\s*/g, '');
+            let cleanTitle = rawTitle.replace(/&#039;/g, "'").replace(/&quot;/g, '"').replace(/\s*[-|�]\s*AniDB\s*/g, '');
             
-            return {
+            let metadata = {
                 image_url: imgMatch ? imgMatch[1].replace(/&amp;/g, "&") : null,
-                description: descMatch ? descMatch[1].replace(/&#039;/g, "'").replace(/&quot;/g, '"') : "No description available.",
-                title: cleanTitle
+                description: "No description available.",
+                title: cleanTitle,
+                rating: null,
+                year: null
             };
+
+            // Enrich with full description and rating from AniList
+            try {
+                const query = `
+                query ($search: String) {
+                  Media (search: $search, type: ANIME) {
+                    description(asHtml: false)
+                    averageScore
+                    seasonYear
+                    coverImage { large }
+                  }
+                }`;
+                const alRes = await fetch("https://graphql.anilist.co", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ query, variables: { search: cleanTitle } })
+                });
+                const alData = await alRes.json();
+                if (alData && alData.data && alData.data.Media) {
+                    const m = alData.data.Media;
+                    if (m.description) metadata.description = m.description.replace(/<[^>]*>?/gm, ''); // Strip any remaining HTML
+                    if (m.averageScore) metadata.rating = (m.averageScore / 10).toFixed(1); // 1-10 scale
+                    if (m.seasonYear) metadata.year = m.seasonYear;
+                    if (m.coverImage && m.coverImage.large && !metadata.image_url) metadata.image_url = m.coverImage.large;
+                }
+            } catch (e) {
+                console.error("AniList enrichment failed", e);
+            }
+            
+            return metadata;
         } catch (e) {
             console.error("Anime metadata error:", e);
             return null;

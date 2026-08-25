@@ -139,37 +139,54 @@ function initHomePage() {
     initTVScraper();
     
     // 5. Settings Logic
-    const saveBtn = document.getElementById('saveSettingsBtn');
-    const resetBtn = document.getElementById('resetSettingsBtn');
-    if (saveBtn) {
-        saveBtn.addEventListener('click', () => {
-            const accentColor = document.getElementById('accentColor').value;
-            const bgColor = document.getElementById('bgColor').value;
-            localStorage.setItem('AnyPlay_accent', accentColor);
-            localStorage.setItem('AnyPlay_bg', bgColor);
-            applySavedColors();
-            alert("Settings saved successfully!");
-        });
-    }
-    if (resetBtn) {
-        resetBtn.addEventListener('click', () => {
-            if(confirm("Are you sure you want to reset settings to default?")) {
-                localStorage.removeItem('AnyPlay_accent');
-                localStorage.removeItem('AnyPlay_bg');
-                applySavedColors();
-                document.getElementById('accentColor').value = '#00a8e1';
-                document.getElementById('bgColor').value = '#0f171e';
-                alert("Settings reset to default!");
+    const clearCacheBtn = document.getElementById('clearCacheBtn');
+    if (clearCacheBtn) {
+        clearCacheBtn.addEventListener('click', async () => {
+            if (confirm("Are you sure you want to clear cache and temporary files?")) {
+                if (AnyPlayNative && AnyPlayNative.clearCache) {
+                    try {
+                        const res = await AnyPlayNative.clearCache();
+                        alert("Cache cleared successfully! Freed " + (res.freedMB || 0).toFixed(1) + " MB.");
+                    } catch (e) {
+                        alert("Error clearing cache: " + e.message);
+                    }
+                } else {
+                    alert("Cache cleared (Simulated).");
+                }
             }
         });
     }
-    
+
+    const checkUpdatesBtn = document.getElementById('checkUpdatesBtn');
+    if (checkUpdatesBtn) {
+        checkUpdatesBtn.addEventListener('click', async () => {
+            const status = document.getElementById('updateStatus');
+            status.textContent = "Checking for updates...";
+            try {
+                const res = await fetch("https://api.github.com/repos/ArturCaffeinated/AnyPlay/releases/latest");
+                const data = await res.json();
+                if (data && data.tag_name) {
+                    const currentVersion = "v1.0.0";
+                    if (data.tag_name !== currentVersion) {
+                        status.innerHTML = `New update available: <b>${data.tag_name}</b>! <a href="${data.html_url}" target="_blank" class="text-primary underline">Download here</a>`;
+                    } else {
+                        status.textContent = "You are up to date! (v1.0.0)";
+                    }
+                } else {
+                    status.textContent = "Failed to check for updates.";
+                }
+            } catch (e) {
+                status.textContent = "Error checking updates: " + e.message;
+            }
+        });
+    }
+
     document.getElementById('stopAllDownloadsBtn')?.addEventListener('click', () => {
         if(confirm("Stop all active downloads?")) {
             alert("Downloads will be cleared on next app restart.");
         }
     });
-    
+
     document.getElementById('copySystemLogsBtn')?.addEventListener('click', (e) => {
         const box = document.getElementById('systemLogsBox');
         if (box && box.textContent) {
@@ -188,7 +205,7 @@ function initHomePage() {
 function applySavedColors() {
     const accentColor = localStorage.getItem('AnyPlay_accent') || '#00a8e1';
     const bgColor = localStorage.getItem('AnyPlay_bg') || '#0f171e';
-    
+
     // Calculate a slightly lighter color for cards
     const r = Math.min(255, parseInt(bgColor.slice(1, 3), 16) + 10);
     const g = Math.min(255, parseInt(bgColor.slice(3, 5), 16) + 10);
@@ -469,29 +486,38 @@ window.copyToClipboard = function(btn) {
         }).catch(e => alert("Failed to copy: " + e));
     }
 };
-
 function updateLibraryProgress(downloads) {
     const cards = document.querySelectorAll('#libraryGrid .media-card');
     cards.forEach(card => {
         const title = card.dataset.title;
         if (!title) return;
         
-        let highestProgress = -1;
+        let totalProgress = 0;
+        let count = 0;
         let isDownloading = false;
         
         for (let did in downloads) {
             let dl = downloads[did];
-            if (dl.status !== 'completed' && !dl.status.startsWith('error') && dl.status !== 'cancelled') {
-                if (dl.title.startsWith(title) || title.startsWith(dl.title)) {
-                    isDownloading = true;
-                    if (dl.progress > highestProgress) {
-                        highestProgress = dl.progress;
-                    }
+            const matches = dl.title === title || 
+                            dl.title.startsWith(title + " -") || 
+                            dl.title.startsWith(title + " S");
+                            
+            if (matches && !dl.status.startsWith('error') && dl.status !== 'cancelled') {
+                isDownloading = true;
+                count++;
+                if (dl.status === 'completed') {
+                    totalProgress += 100;
+                } else {
+                    totalProgress += (dl.progress || 0);
                 }
             }
         }
         
-        const progress = Math.round(highestProgress);
+        if (count > 0 && totalProgress === count * 100) {
+            isDownloading = false;
+        }
+
+        const progress = count > 0 ? Math.round(totalProgress / count) : 0;
         const img = card.querySelector('img.object-cover');
         let overlay = card.querySelector('.dl-overlay');
         const wrapper = card.querySelector('.card-img-wrapper');
@@ -500,8 +526,8 @@ function updateLibraryProgress(downloads) {
             if (img) img.classList.add('grayscale');
             if (!overlay) {
                 overlay = document.createElement('div');
-                overlay.className = 'dl-overlay absolute inset-0 z-10 flex flex-col justify-end';
-                const cover = card.dataset.cover;
+                overlay.className = 'dl-overlay absolute inset-0 z-10 flex flex-col justify-end pointer-events-none';
+                const cover = card.dataset.cover || '/static/placeholder.jpg';
                 overlay.innerHTML = `
                     <div class="dl-progress-bg absolute inset-0 bg-cover bg-center" style="background-image: url('${cover}'); transition: clip-path 0.5s ease;"></div>
                     <div class="dl-progress-text absolute bottom-2 right-2 bg-black/80 text-primary px-2 py-1 rounded font-bold text-xs z-20"></div>
@@ -620,6 +646,7 @@ function initAnimeScraper() {
                             meta.base64Cover = await new Promise(res => { reader.onloadend = () => res(reader.result); reader.readAsDataURL(blob); });
                         } catch(e) { console.error("Cover fetch err", e); }
                     }
+                    meta.title = currentAnime.title;
                     await AnyPlayNative.saveMetadata({ type: 'anime', title: currentAnime.title, metadata: meta });
                 }
             });
@@ -796,7 +823,6 @@ window.downloadMovie = async function(id) {
     }
 };
 
-
 // --- TV Scraper ---
 let currentTV = null;
 let currentTVEpisodes = [];
@@ -896,6 +922,7 @@ function initTVScraper() {
                             id,
                             magnetUrl,
                             title: epTitle,
+                            showTitle: currentTV.title,
                             type: 'tv'
                         });
                     } else {
@@ -958,10 +985,8 @@ async function loadTVEpisodes(show) {
     }
 }
 
-
 // ==========================================
 // SHOW PAGE LOGIC (show.html)
-// ==========================================
 async function initShowPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
@@ -987,13 +1012,62 @@ async function initShowPage() {
             return;
         }
         
+        window.currentShowItem = item;
+        setInterval(pollShowProgress, 2000);
+
         const meta = item.metadata || {};
         
         document.title = `${item.title} - AnyPlay`;
         document.getElementById('showTitle').textContent = item.title || 'Unknown Title';
         document.getElementById('showMeta').textContent = type === 'movie' ? 'Movie' : type;
-        document.getElementById('showDesc').textContent = meta.description || 'No description available.';
+        document.getElementById('showDesc').textContent = meta.description || "No description available.";
         
+        // NEW LOGIC: Update Badges
+        const showMatch = document.getElementById('showMatch');
+        if (showMatch) {
+            let rating = meta.rating || meta.imdbRating || meta.score;
+            if (rating) {
+                showMatch.textContent = `${rating}/10 ?`;
+                showMatch.classList.remove('hidden');
+            } else {
+                showMatch.classList.add('hidden');
+            }
+        }
+        
+        const showYear = document.getElementById('showYear');
+        if (showYear) {
+            showYear.textContent = meta.year || meta.releaseInfo || meta.seasonYear || '';
+        }
+
+        const showCodec = document.getElementById('showCodec');
+        const showRes = document.getElementById('showRes');
+        
+        if (showCodec && showRes) {
+            if (item.episodes && item.episodes.length > 0) {
+                showCodec.textContent = "H.264/AAC";
+                showRes.textContent = "1080p";
+                showCodec.classList.remove('hidden');
+                showRes.classList.remove('hidden');
+            } else {
+                showCodec.classList.add('hidden');
+                showRes.classList.add('hidden');
+            }
+        }
+
+        // Setup Continue / Watch button
+        const continueBtn = document.getElementById('continueBtn');
+        if (continueBtn && item.episodes && item.episodes.length > 0) {
+            continueBtn.classList.remove('hidden');
+            const firstEp = item.episodes[0];
+            const btnText = type === "movie" ? "Watch Movie" : `Watch ${firstEp.display.replace(/\\/g, "/")}`;
+            continueBtn.innerHTML = `<svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>${btnText}`;
+            continueBtn.onclick = () => {
+                window.showPlayer(firstEp.path, firstEp.display, id, 0);
+            };
+        } else if (continueBtn) {
+            continueBtn.classList.add('hidden');
+        }
+
         const hero = document.getElementById('showHero');
         if (hero && item.cover) {
             hero.style.backgroundImage = `url('${item.cover}')`;
@@ -1030,6 +1104,7 @@ async function initShowPage() {
                     const card = document.createElement('div');
                     card.className = 'bg-gray-900 border border-gray-800 rounded-xl p-4 mb-3 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-gray-800 transition-colors gap-4 relative group';
                     const sizeMB = (ep.size / (1024 * 1024)).toFixed(1);
+                    card.dataset.epDisplay = ep.display;
                     card.innerHTML = `
                         <!-- Subtle Action Icons (Top Right) -->
                         <div class="absolute top-3 right-3 flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
@@ -1043,7 +1118,10 @@ async function initShowPage() {
                         
                         <div class="flex-1 pr-12 truncate cursor-pointer" onclick="window.showPlayer('${ep.path.replace(/\\/g, '\\\\')}', '${ep.display.replace(/'/g, "\\'")}', '${id}', 0)">
                             <h4 class="font-bold text-white text-base truncate">${ep.display.replace(/\\/g, '/')}</h4>
-                            <p class="text-gray-400 text-xs mt-1">${sizeMB} MB</p>
+                            <p class="text-gray-400 text-xs mt-1">${sizeMB} MB <span class="ep-status ml-2"></span></p>
+                            <div class="ep-progress-bar hidden w-full bg-gray-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                                <div class="ep-progress-fill bg-primary h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
                         </div>
                         <div class="flex items-center flex-shrink-0">
                             <button class="bg-primary hover:bg-accent text-white font-bold py-2 px-6 rounded-lg transition-colors shadow-lg" onclick="window.showPlayer('${ep.path.replace(/\\/g, '\\\\')}', '${ep.display.replace(/'/g, "\\'")}', '${id}', 0)">Play</button>
@@ -1094,6 +1172,58 @@ async function initShowPage() {
         console.error("Failed to load show:", err);
     }
 }
+
+async function pollShowProgress() {
+    try {
+        if (!AnyPlayNative || !window.currentShowItem) return;
+        const data = await AnyPlayNative.getDownloads();
+        const item = window.currentShowItem;
+        
+        const cards = document.querySelectorAll('#showEpisodes > div.group');
+        cards.forEach(card => {
+            const epDisplay = card.dataset.epDisplay;
+            if (!epDisplay) return;
+            
+            let matchDl = null;
+            for (let did in data) {
+                let dl = data[did];
+                if (dl.status === 'completed' || dl.status.startsWith('error') || dl.status === 'cancelled') continue;
+                
+                if (item.type === 'anime') {
+                    if (dl.title === `${item.title} - ${epDisplay}` || dl.title.endsWith(epDisplay)) {
+                        matchDl = dl; break;
+                    }
+                } else if (item.type === 'tv') {
+                    const m = dl.title.match(/S\d+E\d+/i);
+                    if (m && epDisplay.toUpperCase().includes(m[0].toUpperCase())) {
+                        matchDl = dl; break;
+                    }
+                } else if (item.type === 'movie') {
+                    if (dl.title === item.title) {
+                        matchDl = dl; break;
+                    }
+                }
+            }
+            
+            const pbar = card.querySelector('.ep-progress-bar');
+            const pfill = card.querySelector('.ep-progress-fill');
+            const pstatus = card.querySelector('.ep-status');
+            
+            if (matchDl) {
+                pbar.classList.remove('hidden');
+                pfill.style.width = `${matchDl.progress || 0}%`;
+                pstatus.textContent = `- ${matchDl.progress || 0}%`;
+                pstatus.className = "ep-status ml-2 text-primary font-bold";
+            } else {
+                pbar.classList.add('hidden');
+                pstatus.textContent = "";
+            }
+        });
+    } catch(err) {
+        console.error(err);
+    }
+}
+
 
 // --- Player Logic ---
 let progressInterval = null;
