@@ -1,32 +1,25 @@
-﻿# AnyPlay
+# AnyPlay
 
-Hey!!! It's me, ArturCaffeinated, the dev behind this project. My goal was to make an app to make my life easier.
+本仓库是「AnyPlay」的安卓版本获取入口，附使用资料索引。
 
-### A lil bout me...
-I'm a passionate teenage engeeneer! I looove soldering, new tech, messing with wierd OSs, building PCs, Old stuff like BASIC and retro PCs, and MODDING diffrent consoles. I have modded a few SWITCHES (Oled, lite) and loads of Gameboys.
+## 安装文件资源（夸克网盘）
 
-### So... what is AnyPlay?
-AnyPlay is a 100% open-source **media aggregator and watching client designed specifically for tracking and watching Anime, Movies, and TV Shows on Android**. It acts as a specialized, highly-customized web browser built on Ionic Capacitor that aggregates search results, tracking data, and media streams from publicly available sources on the internet, wrapping it all into a smooth Android expirience!
+> **AnyPlay 安装文件资源（夸克网盘）**：[https://pan.quark.cn/s/fb3fdc4eb0cf](https://pan.quark.cn/s/fb3fdc4eb0cf)
 
-I STRONGLY suggest expiriencing it as a tech demo of how to integrate heavy native Android engines (like FFmpeg and BitTorrent) directly into a web-based UI. 
+## 官方项目
 
-#### Technical Features:
-* **Capacitor-to-Native Bridge**: Custom Java plugins allowing the frontend to talk directly to Android's OS.
-* **Embedded Torrent Engine**: Uses jlibtorrent for highly optimized, peer-to-peer data fetching.
-* **HLS Stream Processing**: Leverages ffmpeg-kit to process and stream .m3u8 manifests.
-* **Metadata Aggregation**: Interfaces with open APIs (like AniList and TMDB) to index and display metadata dynamically.
+- 上游项目：[ArturCaffeinated/AnyPlay](https://github.com/ArturCaffeinated/AnyPlay)
 
-*Note: This repository only contains the core logic (the frontend web code and the custom native Java plugin). To build the full APK, you'll need to drop these files into a fresh Capacitor Android project!*
+## 更多资料
+
+- [下载与安装教程](https://github.com/alipymanbu/Android/blob/master/%E5%AE%98%E7%BD%91%E7%89%88APP%E4%B8%8B%E8%BD%BD/AnyPlay/%E4%B8%8B%E8%BD%BD%E4%B8%8E%E5%AE%89%E8%A3%85%E6%95%99%E7%A8%8B.md)
+- [字幕与音效设置](https://github.com/alipymanbu/Android/blob/master/%E5%AE%98%E7%BD%91%E7%89%88APP%E4%B8%8B%E8%BD%BD/AnyPlay/%E5%AD%97%E5%B9%95%E4%B8%8E%E9%9F%B3%E6%95%88%E8%AE%BE%E7%BD%AE.md)
+- [支持格式与播放问题排查](https://github.com/alipymanbu/Android/blob/master/%E5%AE%98%E7%BD%91%E7%89%88APP%E4%B8%8B%E8%BD%BD/AnyPlay/%E6%94%AF%E6%8C%81%E6%A0%BC%E5%BC%8F%E4%B8%8E%E6%92%AD%E6%94%BE%E9%97%AE%E9%A2%98%E6%8E%92%E6%9F%A5.md)
+- [网页视频怎么下载](https://github.com/alipymanbu/Android/blob/master/%E5%AE%98%E7%BD%91%E7%89%88APP%E4%B8%8B%E8%BD%BD/AnyPlay/%E7%BD%91%E9%A1%B5%E8%A7%86%E9%A2%91%E6%80%8E%E4%B9%88%E4%B8%8B%E8%BD%BD.md)
+- [视频播放与手势操作](https://github.com/alipymanbu/Android/blob/master/%E5%AE%98%E7%BD%91%E7%89%88APP%E4%B8%8B%E8%BD%BD/AnyPlay/%E8%A7%86%E9%A2%91%E6%92%AD%E6%94%BE%E4%B8%8E%E6%89%8B%E5%8A%BF%E6%93%8D%E4%BD%9C.md)
+- [隐藏视频与隐私保护](https://github.com/alipymanbu/Android/blob/master/%E5%AE%98%E7%BD%91%E7%89%88APP%E4%B8%8B%E8%BD%BD/AnyPlay/%E9%9A%90%E8%97%8F%E8%A7%86%E9%A2%91%E4%B8%8E%E9%9A%90%E7%A7%81%E4%BF%9D%E6%8A%A4.md)
+- [全部软件目录](https://github.com/alipymanbu/Android/blob/master/%E5%85%A8%E9%83%A8%E8%BD%AF%E4%BB%B6%E7%9B%AE%E5%BD%95.md)
 
 ---
 
-### Legal & Disclaimers (The boring but important stuff!)
-AnyPlay is exclusively an **advanced web search application**. It acts as a specialized web browser that aggregates search results and metadata from publicly available sources on the internet.
-
-AnyPlay **does not host, store, stream, or distribute** any copyrighted media files. All media is provided by third-party external services and aggregators over which I have absolutely no control. Users are solely responsible for ensuring their usage complies with their local laws and regulations.
-
-#### Open Source Credits:
-* **FFmpeg (ffmpeg-kit)**: Core engine for HLS stream processing.
-* **jlibtorrent (libtorrent)**: P2P downloading engine (BSD License).
-* **Ionic Capacitor**: The native runtime powering the app.
-* **AniList API & TMDB**: Metadata and imagery (Not endorsed or certified by TMDB).
+> 本仓库由上游项目 fork 而来，原始说明见[上游仓库](https://github.com/ArturCaffeinated/AnyPlay)。
